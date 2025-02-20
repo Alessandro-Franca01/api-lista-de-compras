@@ -32,4 +32,10 @@ class ListShopping extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function sharedWith()
+    {
+        return $this->belongsToMany(User::class)
+            ->withTimestamps();
+    }
 }

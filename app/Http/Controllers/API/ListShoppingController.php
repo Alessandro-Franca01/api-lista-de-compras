@@ -17,7 +17,10 @@ class ListShoppingController extends Controller
      */
     public function index(User $user)
     {
-        return $user->lists;
+        return [
+            'my_lists' => $user->lists,
+            'shared_lists' => $user->sharedLists()->with('user')->get()
+        ];
     }
 
     /**
@@ -78,5 +81,32 @@ class ListShoppingController extends Controller
     {
         $list->delete();
         return response()->json(null, 204);
+    }
+
+    public function share(Request $request, ListShopping $list)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $list->sharedWith()->syncWithoutDetaching([$request->user_id]);
+        
+        return response()->json([
+            'message' => 'List shared successfully',
+            'shared_with' => $list->sharedWith
+        ]);
+    }
+
+    public function unshare(Request $request, ListShopping $list)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $list->sharedWith()->detach($request->user_id);
+        
+        return response()->json([
+            'message' => 'List unshared successfully'
+        ]);
     }
 }

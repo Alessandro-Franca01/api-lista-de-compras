@@ -42,4 +42,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(ListShopping::class);
     }
+
+    public function sharedLists()
+    {
+        return $this->belongsToMany(ListShopping::class)
+            ->withTimestamps();
+    }
 }
