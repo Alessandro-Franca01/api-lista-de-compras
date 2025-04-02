@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users.lists', ListShoppingController::class)->only(['store', 'index'])->scoped();
     Route::post('/lists/{list}/share', [ListShoppingController::class, 'share']);
     Route::post('/lists/{list}/unshare', [ListShoppingController::class, 'unshare']);
+    Route::get('users/email/{email}', [UserController::class], 'getByEmail');
     
     // Rotas de amizade
     Route::post('/friends/{friend}', [FriendshipController::class, 'sendRequest']);
