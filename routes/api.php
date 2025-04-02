@@ -7,7 +7,7 @@ use App\Http\Controllers\API\ListShoppingController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\API\FriendshipController;
 
-Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('users', [UserController::class, 'store']);
 
 //Route::middleware('auth:api')->get('/user', function (Request $request) {
@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users.lists', ListShoppingController::class)->only(['store', 'index'])->scoped();
     Route::post('/lists/{list}/share', [ListShoppingController::class, 'share']);
     Route::post('/lists/{list}/unshare', [ListShoppingController::class, 'unshare']);
-    Route::get('users/email/{email}', [UserController::class], 'getByEmail');
+    Route::get('/users/email/{email}', [UserController::class, 'getByEmail']);
     
     // Rotas de amizade
     Route::post('/friends/{friend}', [FriendshipController::class, 'sendRequest']);
