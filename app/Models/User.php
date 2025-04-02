@@ -49,4 +49,34 @@ class User extends Authenticatable
         return $this->belongsToMany(ListShopping::class)
             ->withTimestamps();
     }
+
+    /**
+     * Obtém todos os amigos do usuário (amizades aceitas)
+     */
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+            ->wherePivot('status', 'accepted')
+            ->withTimestamps();
+    }
+
+    /**
+     * Obtém solicitações de amizade pendentes enviadas para o usuário
+     */
+    public function pendingFriendRequests()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')
+            ->wherePivot('status', 'pending')
+            ->withTimestamps();
+    }
+
+    /**
+     * Obtém solicitações de amizade enviadas pelo usuário
+     */
+    public function sentFriendRequests()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+            ->wherePivot('status', 'pending')
+            ->withTimestamps();
+    }
 }
