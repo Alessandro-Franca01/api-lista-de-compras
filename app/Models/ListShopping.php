@@ -33,6 +33,7 @@ class ListShopping extends Model
         return $this->belongsTo(User::class);
     }
 
+    // TODO: In second version change this relation for many to many
     public function sharedWith()
     {
         return $this->belongsToMany(User::class)

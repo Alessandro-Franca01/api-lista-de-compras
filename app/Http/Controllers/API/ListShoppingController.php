@@ -86,10 +86,11 @@ class ListShoppingController extends Controller
     public function share(Request $request, ListShopping $list)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id'
+            'email' => 'required'
         ]);
 
-        $list->sharedWith()->syncWithoutDetaching([$request->user_id]);
+        $user = User::where('email', $request->email)->first();
+        $list->sharedWith()->syncWithoutDetaching([$user->id]);
         
         return response()->json([
             'message' => 'List shared successfully',
