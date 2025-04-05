@@ -86,7 +86,6 @@ class UserController extends Controller
         return response()->json(null, 204);
     }
 
-
     public function getByEmail(string $email)
     {
         $user = User::where('email', $email)->first();
