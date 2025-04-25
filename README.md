@@ -1,61 +1,95 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+# API de Lista de Compras
 
-## About Laravel
+Esta é uma API desenvolvida em Laravel para gerenciar listas de compras e permitir a interação entre usuários através de um sistema de amizade.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funcionalidades
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Gerenciamento de Usuários**: Criação, atualização e exclusão de usuários.
+- **Listas de Compras**: Criação, leitura, atualização e exclusão de listas de compras.
+- **Compartilhamento de Listas**: Usuários podem compartilhar suas listas de compras com outros usuários.
+- **Sistema de Amizade**: Usuários podem enviar, aceitar e rejeitar solicitações de amizade.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tecnologias Utilizadas
 
-## Learning Laravel
+- [Laravel](https://laravel.com) - Framework PHP para desenvolvimento de aplicações web.
+- [Sanctum](https://laravel.com/docs/sanctum) - Para autenticação de API.
+- [Eloquent ORM](https://laravel.com/docs/eloquent) - Para interações com o banco de dados.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Instalação
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/Alessandro-Franca01/api-lista-de-compras.git
+   cd seu_repositorio
+   ```
 
-## Laravel Sponsors
+2. Instale as dependências do Composer:
+   ```bash
+   composer install
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+3. Crie um arquivo `.env` a partir do arquivo `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
 
-### Premium Partners
+4. Gere a chave da aplicação:
+   ```bash
+   php artisan key:generate
+   ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+5. Execute as migrações para criar as tabelas no banco de dados:
+   ```bash
+   php artisan migrate
+   ```
 
-## Contributing
+6. Inicie o servidor de desenvolvimento:
+   ```bash
+   php artisan serve
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Endpoints
 
-## Code of Conduct
+### Autenticação
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Login**: `POST /api/login`
+- **Logout**: `POST /api/logout`
 
-## Security Vulnerabilities
+### Usuários
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Listar Usuários**: `GET /api/users`
+- **Criar Usuário**: `POST /api/users`
+- **Mostrar Usuário**: `GET /api/users/{id}`
+- **Atualizar Usuário**: `PUT /api/users/{id}`
+- **Deletar Usuário**: `DELETE /api/users/{id}`
 
-## License
+### Listas de Compras
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Listar Listas**: `GET /api/lists`
+- **Criar Lista**: `POST /api/lists`
+- **Mostrar Lista**: `GET /api/lists/{id}`
+- **Atualizar Lista**: `PUT /api/lists/{id}`
+- **Deletar Lista**: `DELETE /api/lists/{id}`
+- **Compartilhar Lista**: `POST /api/lists/{id}/share`
+
+### Amizades
+
+- **Enviar Solicitação de Amizade**: `POST /api/friends/{friend}`
+- **Aceitar Solicitação de Amizade**: `PUT /api/friends/{friend}/accept`
+- **Rejeitar Solicitação de Amizade**: `PUT /api/friends/{friend}/reject`
+- **Remover Amizade**: `DELETE /api/friends/{friend}`
+- **Listar Amigos**: `GET /api/friends`
+
+## Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir um problema ou enviar um pull request.
+
+## Licença
+
+Este projeto é licenciado sob a Licença MIT. Veja o arquivo [MIT LICENSE](https://opensource.org/license/MIT) para mais detalhes.
+
+## Contato
+
+Para dúvidas ou sugestões, entre em contato com [alessandro0564@yahoo.com.br](mailto:alessandro0564@yahoo.com.br).
