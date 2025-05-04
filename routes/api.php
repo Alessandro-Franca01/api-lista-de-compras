@@ -6,9 +6,11 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\ListShoppingController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\API\FriendshipController;
+use App\Http\Controllers\WhatsAppController;
 
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('users', [UserController::class, 'store']);
+Route::post('webhook', [WhatsAppController::class, 'receive']);
 
 //Route::middleware('auth:api')->get('/user', function (Request $request) {
 //    return $request->user();
@@ -21,7 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/lists/{list}/share', [ListShoppingController::class, 'share']);
     Route::post('/lists/{list}/unshare', [ListShoppingController::class, 'unshare']);
     Route::get('/users/email/{email}', [UserController::class, 'getByEmail']);
-    
+
     // Rotas de amizade
     Route::post('/friends/{friend}', [FriendshipController::class, 'sendRequest']);
     Route::put('/friends/{friend}/accept', [FriendshipController::class, 'acceptRequest']);
