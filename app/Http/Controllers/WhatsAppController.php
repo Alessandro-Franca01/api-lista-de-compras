@@ -19,6 +19,59 @@ class WhatsAppController extends Controller
     }
 
     /**
+     * Display the WhatsApp message form
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function showForm()
+    {
+        return view('whatsapp.form');
+    }
+
+    /**
+     * Send a message from the web form
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendFromForm(Request $request)
+    {
+        $request->validate([
+            'phone_number' => 'required|string',
+            'message' => 'required|string'
+        ]);
+
+        try {
+
+            if(!env('WHATSAPP_IS_ALLOWED')){
+
+                return redirect()->back()->with('error', 'Uso do Whatsapp está desabilitado');
+            }
+            // Format the data to match the expected webhook format
+            $phoneNumber = $request->input('phone_number');
+            $messageText = $request->input('message');
+
+            // Add AI service 
+            if(!empty($request->input('isUsedAI')) && strtolower($request->input('isUsedAI')) == 'on' ){
+                $messageText = $this->aiService->getResponse($messageText);
+            }
+
+            // Send the message directly using the WhatsApp service
+            $response = $this->whatsAppService->sendMessage($phoneNumber, $messageText);
+
+            if (isset($response['error'])) {
+                Log::error('Error sending WhatsApp message', $response);
+                return redirect()->back()->with('error', 'Falha ao enviar mensagem: ' . ($response['error'] ?? 'Erro desconhecido'));
+            }
+
+            return redirect()->back()->with('success', 'Mensagem enviada com sucesso!');
+        } catch (\Exception $e) {
+            Log::error('Exception sending WhatsApp message: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erro ao enviar mensagem: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Handle incoming WhatsApp webhook requests
      *
      * @param Request $request
@@ -42,7 +95,7 @@ class WhatsAppController extends Controller
 
         // Get AI response (default model defined in AIService)
         // Alternatively, you can specify the model: $this->aiService->getResponse($message, 'ollama', 'phi4-mini')
-        $reply = $this->aiService->getResponse($message, 'ollama');
+        $reply = $this->aiService->getResponse($message);
 
         // Send response via WhatsApp
         $responseData = $this->whatsAppService->sendMessage($from, $reply);
