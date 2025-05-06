@@ -113,26 +113,81 @@ class WhatsAppControllerTest extends TestCase
     }
 
     // TODO: Complete this tests after when I have more time
-//    public function testReceiveWithNoMessage()
-//    {
-//        // Arrange
-//        // Create webhook data with no message
-//        $webhookData = [
-//            'entry' => [
-//                [
-//                    'changes' => [
-//                        [
-//                            'value' => [
-//                                // No messages key
-//                            ]
-//                        ]
-//                    ]
-//                ]
-//            ]
-//        ];
-//
-//        // Create request mock
-//        $request = Mockery::mock(Request::class);
-//        $request->shoul
-//            }
+        public function testReceiveWithNoMessage()
+    {
+        // Arrange
+        // Create webhook data with no message
+        $webhookData = [
+            'entry' => [
+                [
+                    'changes' => [
+                        [
+                            'value' => [
+                                // No messages key
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        // Create request mock
+        $request = Mockery::mock(Request::class);
+        $request->shouldReceive('all')->andReturn($webhookData);
+
+        // Set up expectations
+        $this->whatsAppServiceMock->shouldReceive('parseWebhook')
+            ->once()
+            ->with($webhookData)
+            ->andReturn(null);
+
+        // Act
+        $response = $this->controller->receive($request);
+
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('{"status":"no message"}', $response->getContent());
+    }
+
+    public function testReceiveWithInvalidWebhookData()
+    {
+        // Arrange
+        $invalidWebhookData = ['invalid' => 'data'];
+
+        $request = Mockery::mock(Request::class);
+        $request->shouldReceive('all')->andReturn($invalidWebhookData);
+
+        $this->whatsAppServiceMock->shouldReceive('parseWebhook')
+            ->once()
+            ->with($invalidWebhookData)
+            ->andReturn(null);
+
+        // Act
+        $response = $this->controller->receive($request);
+
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('{"status":"no message"}', $response->getContent());
+    }
+
+    public function testReceiveWithEmptyRequest()
+    {
+        // Arrange
+        $emptyWebhookData = [];
+
+        $request = Mockery::mock(Request::class);
+        $request->shouldReceive('all')->andReturn($emptyWebhookData);
+
+        $this->whatsAppServiceMock->shouldReceive('parseWebhook')
+            ->once()
+            ->with($emptyWebhookData)
+            ->andReturn(null);
+
+        // Act
+        $response = $this->controller->receive($request);
+
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('{"status":"no message"}', $response->getContent());
+    }
 }
