@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WhatsAppController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,3 +21,6 @@ Route::get('/', function () {
 Route::get('/politica-de-privacidade', function () {
     return view('privacy_policy');
 });
+
+Route::get('/whatsapp', [WhatsAppController::class, 'showForm'])->name('show.form.whatsapp');
+Route::post('/whatsapp/send', [WhatsAppController::class, 'sendFromForm'])->name('send.whatsapp');
