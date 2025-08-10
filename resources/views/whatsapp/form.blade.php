@@ -28,14 +28,11 @@
                     <div class="card-body">
                         <form id="whatsappForm" method="POST" action="{{ route('send.whatsapp') }}">
                             @csrf
-                            
-                            <div class="mb-3">
+                                <!-- Number example: 558398530445 -->
+                                <div class="mb-3">
                                 <label for="phoneNumber" class="form-label">Número de Telefone</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">+</span>
-                                    <input type="text" class="form-control" id="phoneNumber" name="phone_number" 
-                                           placeholder="55839xxxxxxxx" required>
-                                </div>
+                                <textarea class="form-control" id="phoneNumber" name="phone_number" rows="3" 
+                                          placeholder="55839xxxxxxxx, 55839yyyyyyyy" required></textarea>
                                 <div class="form-text">Insira o número completo com código do país (Ex: 55 para Brasil)</div>
                             </div>
 

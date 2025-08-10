@@ -11,12 +11,15 @@
         "php": "^8.2",
         "guzzlehttp/guzzle": "^7.8",
         "laravel/framework": "^11.0",
-        "spatie/laravel-ignition": "^2.3",
-        "fakerphp/faker": "^1.23"
+        "laravel/sanctum": "^4.0"
     },
     "require-dev": {
+        "laravel/pint": "^1.13",
+        "spatie/laravel-ignition": "^2.3",
+        "nunomaduro/collision": "^8.1",
         "phpunit/phpunit": "^10.5",
-        "nunomaduro/collision": "^8.1"
+        "fakerphp/faker": "^1.23",
+        "mockery/mockery": "^1.6"
     },
     "config": {
         "optimize-autoloader": true,

@@ -20,7 +20,7 @@ class WhatsAppController extends Controller
 
     /**
      * Display the WhatsApp message form
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function showForm()
@@ -30,7 +30,7 @@ class WhatsAppController extends Controller
 
     /**
      * Send a message from the web form
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -48,20 +48,30 @@ class WhatsAppController extends Controller
                 return redirect()->back()->with('error', 'Uso do Whatsapp está desabilitado');
             }
             // Format the data to match the expected webhook format
-            $phoneNumber = $request->input('phone_number');
+            $phoneNumbers = explode(',', $request->input('phone_number'));
             $messageText = $request->input('message');
 
-            // Add AI service 
+            // Add AI service
             if(!empty($request->input('isUsedAI')) && strtolower($request->input('isUsedAI')) == 'on' ){
                 $messageText = $this->aiService->getResponse($messageText);
             }
 
-            // Send the message directly using the WhatsApp service
-            $response = $this->whatsAppService->sendMessage($phoneNumber, $messageText);
+            $errors = [];
+            foreach ($phoneNumbers as $phoneNumber) {
+                $phoneNumber = trim($phoneNumber);
+                if (empty($phoneNumber)) {
+                    continue;
+                }
+                $response = $this->whatsAppService->sendMessage($phoneNumber, $messageText);
 
-            if (isset($response['error'])) {
-                Log::error('Error sending WhatsApp message', $response);
-                return redirect()->back()->with('error', 'Falha ao enviar mensagem: ' . ($response['error'] ?? 'Erro desconhecido'));
+                if (isset($response['error'])) {
+                    Log::error('Error sending WhatsApp message to ' . $phoneNumber, $response);
+                    $errors[] = $phoneNumber . ': ' . ($response['error'] ?? 'Erro desconhecido');
+                }
+            }
+
+            if (!empty($errors)) {
+                return redirect()->back()->with('error', 'Falha ao enviar algumas mensagens: ' . implode(', ', $errors));
             }
 
             return redirect()->back()->with('success', 'Mensagem enviada com sucesso!');
