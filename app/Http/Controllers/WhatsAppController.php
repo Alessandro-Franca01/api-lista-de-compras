@@ -37,7 +37,7 @@ class WhatsAppController extends Controller
      */
     public function sendFromForm(Request $request)
     {
-        // Melhor validação
+        // Melhor validação - 558398530445 
         $validator = Validator::make($request->all(), [
             'phone_number' => [
                 'required',
