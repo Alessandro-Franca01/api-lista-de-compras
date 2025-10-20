@@ -25,27 +25,27 @@ Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
         ->middleware(['verify.whatsapp.webhook']);
 
     // Rotas protegidas por autenticação (se necessário)
-    Route::middleware(['web'])->group(function () {
+        Route::middleware(['web'])->group(function () {
 
-        // Exibir formulário de envio
-        Route::get('/send', [WhatsAppController::class, 'showForm'])
-            ->name('send.form');
+            // Exibir formulário de envio
+            Route::get('/send', [WhatsAppController::class, 'showForm'])
+                ->name('send.form');
 
-        // Enviar mensagem simples via formulário
-        Route::post('/send', [WhatsAppController::class, 'sendFromForm'])
-            ->name('send')
-            ->middleware(['whatsapp.rate.limit']);
+            // Enviar mensagem simples via formulário
+            Route::post('/send', [WhatsAppController::class, 'sendFromForm'])
+                ->name('send')
+                ->middleware(['whatsapp.rate.limit']);
 
-        // Enviar template
-        Route::post('/send/template', [WhatsAppController::class, 'sendTemplate'])
-            ->name('send.template')
-            ->middleware(['whatsapp.rate.limit']);
+            // Enviar template
+            Route::post('/send/template', [WhatsAppController::class, 'sendTemplate'])
+                ->name('send.template')
+                ->middleware(['whatsapp.rate.limit']);
 
-        // Enviar mídia
-        Route::post('/send/media', [WhatsAppController::class, 'sendMedia'])
-            ->name('send.media')
-            ->middleware(['whatsapp.rate.limit']);
-    });
+            // Enviar mídia
+            Route::post('/send/media', [WhatsAppController::class, 'sendMedia'])
+                ->name('send.media')
+                ->middleware(['whatsapp.rate.limit']);
+        });
 });
 
 // Rotas API para integração externa

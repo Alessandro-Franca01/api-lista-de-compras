@@ -37,7 +37,8 @@ class WhatsAppController extends Controller
      */
     public function sendFromForm(Request $request)
     {
-        // Melhor validação - 558398530445 
+        // TODO: FUNCIONANDO CORRETAMENTE O ENVIO DE MENSAGENS E O USO DO AI
+        // Melhor validação - 558398530445
         $validator = Validator::make($request->all(), [
             'phone_number' => [
                 'required',
@@ -45,7 +46,7 @@ class WhatsAppController extends Controller
                 'regex:/^(\d{10,15})(,\s*\d{10,15})*$/' // Valida formato de números
             ],
             'message' => 'required|string|min:1|max:4096', // WhatsApp tem limite de caracteres
-            'isUsedAI' => 'nullable|boolean'
+            'isUsedAI' => 'nullable|string'
         ], [
             'phone_number.required' => 'O número de telefone é obrigatório.',
             'phone_number.regex' => 'Formato de números inválido. Use apenas números separados por vírgula.',
@@ -69,7 +70,7 @@ class WhatsAppController extends Controller
             $messageText = $request->input('message');
 
             // Processar com IA se solicitado
-            if ($request->boolean('isUsedAI')) {
+            if ($request->input('isUsedAI') == 'on') {
                 $messageText = $this->aiService->getResponse($messageText);
             }
 
@@ -97,6 +98,9 @@ class WhatsAppController extends Controller
      */
     public function receive(Request $request)
     {
+        // TODO: Não consigo testar o recebiemnto de mensagens
+        //Log::info("Message received", ['request' => $request->all()]);
+
         try {
             // Verificar se o webhook está habilitado
             if (!config('services.whatsapp.webhook_enabled', true)) {
@@ -338,5 +342,224 @@ class WhatsAppController extends Controller
         }
 
         return substr($phoneNumber, 0, 3) . str_repeat('*', strlen($phoneNumber) - 6) . substr($phoneNumber, -3);
+    }
+
+    /**
+     * Send a template message from the web form
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendTemplate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone_number' => [
+                'required',
+                'string',
+                'regex:/^(\d{10,15})(,\s*\d{10,15})*$/' // Valida formato de números
+            ],
+            'template_name' => 'required|string',
+            'template_params' => 'nullable|array',
+        ], [
+            'phone_number.required' => 'O número de telefone é obrigatório.',
+            'phone_number.regex' => 'Formato de números inválido. Use apenas números separados por vírgula.',
+            'template_name.required' => 'O nome do template é obrigatório.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            if (!config('services.whatsapp.enabled', false)) {
+                return redirect()->back()->with('error', 'Serviço WhatsApp está desabilitado no momento.');
+            }
+
+            $phoneNumbers = $this->parsePhoneNumbers($request->input('phone_number'));
+            $templateName = $request->input('template_name');
+            $templateParams = $request->input('template_params', []);
+
+            $results = ['success' => [], 'failed' => [], 'total' => count($phoneNumbers)];
+
+            foreach ($phoneNumbers as $phoneNumber) {
+                try {
+                    $response = $this->whatsAppService->sendTemplateMessage(
+                        $phoneNumber, $templateName, $templateParams
+                    );
+
+                    if (isset($response['error'])) {
+                        $results['failed'][] = [
+                            'number' => $this->maskPhoneNumber($phoneNumber),
+                            'error' => $response['error']
+                        ];
+                        Log::error('Failed to send template message', [
+                            'number' => $this->maskPhoneNumber($phoneNumber),
+                            'error' => $response['error']
+                        ]);
+                    } else {
+                        $results['success'][] = $this->maskPhoneNumber($phoneNumber);
+                        Log::info('Template message sent successfully', [
+                            'number' => $this->maskPhoneNumber($phoneNumber),
+                            'message_id' => $response['messages'][0]['id'] ?? 'unknown'
+                        ]);
+                    }
+                    usleep(500000); // 0.5 segundos
+                } catch (\Exception $e) {
+                    $results['failed'][] = [
+                        'number' => $this->maskPhoneNumber($phoneNumber),
+                        'error' => 'Erro interno: ' . $e->getMessage()
+                    ];
+                    Log::error('Exception sending template to number', [
+                        'number' => $this->maskPhoneNumber($phoneNumber),
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            return $this->handleSendResults($results);
+
+        } catch (\Exception $e) {
+            Log::error('Exception sending WhatsApp template message: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['_token'])
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Erro inesperado ao enviar template. Tente novamente.')
+                ->withInput();
+        }
+    }
+
+    /**
+     * Send a media message from the web form
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendMedia(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone_number' => [
+                'required',
+                'string',
+                'regex:/^(\d{10,15})(,\s*\d{10,15})*$/' // Valida formato de números
+            ],
+            'media_file' => 'nullable|file|max:16384', // Max 16MB
+            'media_url' => 'nullable|url',
+            'caption' => 'nullable|string|max:1024',
+        ], [
+            'phone_number.required' => 'O número de telefone é obrigatório.',
+            'phone_number.regex' => 'Formato de números inválido. Use apenas números separados por vírgula.',
+            'media_file.max' => 'O arquivo de mídia não pode ter mais que 16MB.',
+            'media_url.url' => 'A URL da mídia é inválida.',
+            'caption.max' => 'A legenda não pode ter mais que 1024 caracteres.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            if (!config('services.whatsapp.enabled', false)) {
+                return redirect()->back()->with('error', 'Serviço WhatsApp está desabilitado no momento.');
+            }
+
+            $phoneNumbers = $this->parsePhoneNumbers($request->input('phone_number'));
+            $mediaUrl = $request->input('media_url');
+            $caption = $request->input('caption');
+            $mediaType = null;
+
+            if ($request->hasFile('media_file')) {
+                // Para simplificar, vamos assumir que o arquivo será enviado para um serviço de armazenamento
+                // e a URL pública será usada. Aqui, apenas um placeholder.
+                // Em um cenário real, você faria upload para S3, Google Cloud Storage, etc.
+                // Por enquanto, vamos simular uma URL.
+                $uploadedFile = $request->file('media_file');
+                $mediaUrl = 'https://example.com/uploads/' . $uploadedFile->hashName(); // Placeholder
+
+                $mimeType = $uploadedFile->getMimeType();
+                if (str_starts_with($mimeType, 'image')) {
+                    $mediaType = 'image';
+                } elseif (str_starts_with($mimeType, 'video')) {
+                    $mediaType = 'video';
+                } elseif (str_starts_with($mimeType, 'audio')) {
+                    $mediaType = 'audio';
+                } elseif (in_array($mimeType, ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'text/plain'])) {
+                    $mediaType = 'document';
+                } else {
+                    return redirect()->back()->with('error', 'Tipo de arquivo de mídia não suportado.');
+                }
+            } elseif (empty($mediaUrl)) {
+                return redirect()->back()->with('error', 'É necessário fornecer um arquivo de mídia ou uma URL.');
+            }
+
+            if (!$mediaType && $mediaUrl) {
+                // Tentar inferir o tipo de mídia pela URL (simplificado)
+                $extension = pathinfo($mediaUrl, PATHINFO_EXTENSION);
+                $mediaType = match ($extension) {
+                    'jpg', 'jpeg', 'png', 'gif', 'webp' => 'image',
+                    'mp4', '3gp' => 'video',
+                    'mp3', 'aac', 'amr', 'ogg' => 'audio',
+                    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt' => 'document',
+                    default => null,
+                };
+                if (!$mediaType) {
+                    return redirect()->back()->with('error', 'Não foi possível determinar o tipo de mídia da URL fornecida.');
+                }
+            }
+
+            $results = ['success' => [], 'failed' => [], 'total' => count($phoneNumbers)];
+
+            foreach ($phoneNumbers as $phoneNumber) {
+                try {
+                    $response = $this->whatsAppService->sendMediaMessage(
+                        $phoneNumber, $mediaUrl, $mediaType, $caption
+                    );
+
+                    if (isset($response['error'])) {
+                        $results['failed'][] = [
+                            'number' => $this->maskPhoneNumber($phoneNumber),
+                            'error' => $response['error']
+                        ];
+                        Log::error('Failed to send media message', [
+                            'number' => $this->maskPhoneNumber($phoneNumber),
+                            'error' => $response['error']
+                        ]);
+                    } else {
+                        $results['success'][] = $this->maskPhoneNumber($phoneNumber);
+                        Log::info('Media message sent successfully', [
+                            'number' => $this->maskPhoneNumber($phoneNumber),
+                            'message_id' => $response['messages'][0]['id'] ?? 'unknown'
+                        ]);
+                    }
+                    usleep(500000); // 0.5 segundos
+                } catch (\Exception $e) {
+                    $results['failed'][] = [
+                        'number' => $this->maskPhoneNumber($phoneNumber),
+                        'error' => 'Erro interno: ' . $e->getMessage()
+                    ];
+                    Log::error('Exception sending media to number', [
+                        'number' => $this->maskPhoneNumber($phoneNumber),
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            return $this->handleSendResults($results);
+
+        } catch (\Exception $e) {
+            Log::error('Exception sending WhatsApp media message: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['_token'])
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Erro inesperado ao enviar mídia. Tente novamente.')
+                ->withInput();
+        }
     }
 }

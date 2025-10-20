@@ -253,7 +253,7 @@
                         <!-- Aba Template -->
 {{--                        {{ route('send.whatsapp.template') }} --}}
                         <div class="tab-pane fade" id="template" role="tabpanel">
-                            <form id="templateForm" method="POST" action="#">
+                            <form id="templateForm" method="POST" action="{{ route('whatsapp.send.template') }}">
                                 @csrf
                                 <input type="hidden" name="message_type" value="template">
 
@@ -307,7 +307,7 @@
 {{--                        {{ route('send.whatsapp.media') }} --}}
                         <div class="tab-pane fade" id="media" role="tabpanel">
 
-                            <form id="mediaForm" method="POST" action="#" enctype="multipart/form-data">
+                            <form id="mediaForm" method="POST" action="{{ route('whatsapp.send.media') }}" enctype="multipart/form-data">
                                 @csrf
                                 <input type="hidden" name="message_type" value="media">
 

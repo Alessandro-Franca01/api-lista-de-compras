@@ -15,7 +15,7 @@ class WhatsAppService
 
     public function __construct()
     {
-        $this->apiVersion = config('services.whatsapp.api_version', 'v18.0');
+        $this->apiVersion = config('services.whatsapp.api_version', 'v23.0');
     }
 
     /**
