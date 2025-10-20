@@ -62,5 +62,7 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'verify.whatsapp.webhook' => \App\Http\Middleware\VerifyWhatsAppWebhook::class,
+        'whatsapp.rate.limit' => \App\Http\Middleware\WhatsAppRateLimit::class,
     ];
 }
